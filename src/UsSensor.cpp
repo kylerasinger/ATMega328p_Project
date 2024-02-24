@@ -1,15 +1,8 @@
 // #include "Sensor.h"
 #include "UsSensor.h"
-#include "UART.h"
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdio.h>
-
-
-// UsSensor(uint8_t echoPin, uint8_t trigPin){
-//     DDRB &= ~(1 << echoPin);
-//     DDRB |= (1 << trigPin);
-// }
 
 UsSensor::UsSensor(int echoPin, int trigPin, UART* uart) : echoPin(echoPin), trigPin(trigPin){
     DDRB &= ~(1 << this->echoPin); // Set echoPin as input
@@ -43,8 +36,8 @@ uint16_t UsSensor::getDistance() {
     sprintf(buffer2, "PulseUS: %u us", pulseUS);
     uart->println(buffer2);
 
-    float calibrationFloat = 1.2;
-    uint16_t distCM = ((pulseUS * calibrationFloat) * speedOfSoundCMperMicroSec)/4; //pulseUS is the pulse length in microseconds
+    float calibrationFloat = 1.30400;
+    uint16_t distCM = ((pulseUS * calibrationFloat) * speedOfSoundCMperMicroSec)/2; //pulseUS is the pulse length in microseconds
     
     //out of range error catch
     if(distCM < minDistCM || distCM > maxDistCM){
