@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <util/delay.h>
+#include "UART.h"
 
 //define pins for the US sensor
 #define US_TRIG PB4
@@ -18,33 +19,16 @@
 #define Y_LED_PIN PB5
 
 // Function prototypes
-void uart_putchar(char c);
-void uart_print(const char *str);
-void uart_println(const char *str);
+        // void uart_putchar(char c);
+        // void uart_print(const char *str);
+        // void uart_println(const char *str);
 uint16_t get_us_dist();
 double map(double x, double in_min, double in_max, double out_min, double out_max);
 uint16_t get_ir_dist();
 int get_us_pulse();
 
-
-void uart_putchar(char c) {
-  //wait for empty transmit buffer
-  while (!(UCSR0A & (1 << UDRE0)));
-  //load char into USART i/o data register
-  UDR0 = c;
-}
-
-void uart_print(const char *str) {
-  while (*str) {
-    uart_putchar(*str++);
-  }
-}
-
-void uart_println(const char *str) {
-  uart_print(str);
-  uart_putchar('\r');
-  uart_putchar('\n');
-}
+//Initialize objects
+UART uart;
 
 uint16_t get_us_dist(){
   int maxDistCM = 400;
@@ -65,7 +49,7 @@ uint16_t get_us_dist(){
 
   char buffer2[32];
   sprintf(buffer2, "PulseUS: %u us", pulseUS);
-  uart_println(buffer2);
+  uart.println(buffer2);
 
   float calibrationFloat = 1.30434;
   uint16_t distCM = ((pulseUS * calibrationFloat) * speedOfSoundCMperMicroSec)/2; //pulseUS is the pulse length in microseconds
@@ -99,7 +83,7 @@ uint16_t get_ir_dist(){
 
   char buffer3[32];
   sprintf(buffer3, "ADC Value: %u on 1023", ADC);
-  uart_println(buffer3);
+  uart.println(buffer3);
 
   float voltageIR = map(ir_val2, 0, 1023, 0, 3200)/1000; //all in milliVolts 
 
@@ -205,7 +189,7 @@ int main(void)
 
     char buffer[32];
     sprintf(buffer, "Distance: %u cm", distance);
-    uart_println(buffer);
+    uart.println(buffer);
 
     _delay_ms(250);
   }
