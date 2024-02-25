@@ -7,6 +7,8 @@ LED::LED(int ledPin){
     OCR2A = 0;
 }
 
-void LED::setBrightness(int brightness){
+void LED::setBrightness(int brightness){ //0 to 255
+  //its backwards in the conu board.
+  brightness = 255 - brightness;
   OCR2A = brightness;
 }
