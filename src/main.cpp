@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <util/delay.h>
-
-#include <util/twi.h>
+#include <util/twi.h> //status codes of TWI for AVR
 
 //personally made classes and helper functions
 #include "Communication/UART.h"
@@ -45,12 +44,15 @@ void I2CInit(uint32_t i2cBaudRate) {
   TWSR = 0b00000000; // Set prescaler to 1
   TWBR = ((F_CPU / i2cBaudRate) - 16) / 2; // Set SCL frequency
   TWCR |= (1 << TWEN); // Enable I2C
+  _delay_us(10);
 }
 
 void I2CStart(){
   //start condition
+  _delay_us(10);
   TWCR = (1 << TWINT)|(1 << TWSTA)|(1 << TWEN);
   while (!(TWCR & (1 << TWINT)));
+  
 }
 
 void I2CStop(){
@@ -58,20 +60,38 @@ void I2CStop(){
   TWCR = (1 << TWSTO) | (1 << TWEN) | (1 << TWINT);
 }
 
-void I2CWrite(uint8_t data) {
+bool I2CWrite(uint8_t data) {
   TWDR = data; // Load data into TWDR register
   TWCR = (1 << TWINT) | (1 << TWEN); // Begin transmission
   while (!(TWCR & (1 << TWINT))); // Wait for transmission to complete
+
+  uint8_t twst = TW_STATUS & 0xF8;
+	if ((twst != TW_MT_SLA_ACK) && (twst != TW_MT_DATA_ACK)) {
+    return false;
+  }
+
+  _delay_us(10);
+  return true;
 }
 
-bool I2CWriteToReg(uint8_t deviceAddr, uint8_t regAddr, uint8_t data){
+bool I2CWriteToReg(uint8_t deviceAddr, uint8_t regAddr, uint8_t data, LED* led){
   I2CStart();
   
   //add write bit (0)
-  I2CWrite(deviceAddr<<1);
-  I2CWrite(regAddr);
-  I2CWrite(data);
+  if(!I2CWrite(deviceAddr<<1)){
+    led->setBrightness(255);
+    return false;
+  };
 
+  if(!I2CWrite(regAddr)){
+    led->setBrightness(255);
+    return false;
+  };
+
+  if(!I2CWrite(data)){
+    led->setBrightness(255);
+    return false;
+  };
   I2CStop();
   return true;
 }
@@ -145,11 +165,10 @@ uint8_t I2CReadFromReg(uint8_t deviceAddr, uint8_t regAddr, LED* led) {
   I2CWrite(deviceAddr << 1 | 0x01); // Read mode
   status = TWSR & 0xF8;
   if (status != SLA_R_ACK) { //successful SLA+R
-    led->setBrightness(0);
+    led->setBrightness(255);
     return status;
   }
 
-  //!!! PROBLEM HERE !!!
   _delay_us(10);
   TWCR = (1 << TWINT) | (1 << TWEN);
   while (!(TWCR & (1 << TWINT))); // Wait for transmission to complete
@@ -208,9 +227,9 @@ int main(void) {
 
   //MPU set up
     I2CInit(400000);
-    _delay_ms(100);
+    
     // bool i2cConnection = detectMPU(&largeLED);
-    // _delay_ms(100);
+    // _delay_us(10);
     // char buffer[48];
     // sprintf(buffer, "MPU Connection status: %s", i2cConnection ? "Success" : "Failed");
     // uart.println(buffer);
@@ -218,8 +237,8 @@ int main(void) {
     //test if write works
     uint8_t data = 0x01;
     //power management
-    I2CWriteToReg(MPU6050_ADDRESS, 0x6B, 0xF0);
-    data = I2CReadFromReg(MPU6050_ADDRESS, 0x6B, &largeLED);
+    I2CWriteToReg(MPU6050_ADDRESS, 0x1B, 0xF0, &largeLED);
+    data = I2CReadFromReg(MPU6050_ADDRESS, 0x75, &largeLED);
     
     char buffer2[32];
     sprintf(buffer2, "Data read: %02X", data);
