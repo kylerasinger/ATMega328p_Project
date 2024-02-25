@@ -47,7 +47,7 @@ uint16_t UsSensor::getDistance() {
 }
 
 int UsSensor::getUsPulse(){
-        //this function returns the length of teh ultrasound pulse but in microseconds.
+    //this function returns the length of teh ultrasound pulse but in microseconds.
     uint16_t pulseDuration = 0;
     
     TCCR2B = 0; //stop timer 2

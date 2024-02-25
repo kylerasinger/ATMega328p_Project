@@ -1,5 +1,5 @@
 #include "IrSensor.h"
-#include "Utilities.h"
+#include "../Utilities/Utilities.h"
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdio.h>

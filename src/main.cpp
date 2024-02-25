@@ -5,10 +5,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <util/delay.h>
-#include "UART.h"
-#include "UsSensor.h"
-#include "IrSensor.h"
-#include "Utilities.h"
+
+//personally made classes and helper functions
+#include "Communication/UART.h"
+#include "Sensors/UsSensor.h"
+#include "Sensors/IrSensor.h"
+#include "Utilities/Utilities.h"
+#include "Communication/LED.h"
 
 
 /* ---===       PIN DECLARATION      ===--- */
@@ -24,60 +27,62 @@
   #define LED_PIN PB3
   #define Y_LED_PIN PB5
 
+  //define IMU 
+  #define I2C_DATA PC4
+  #define I2C_CLOCK PC5
+  #define MPU6050_ADDRESS 0x68
+
+  //define Servo pins
+
 /* ---===   END OF PIN DECLARATION   ===--- */
 
-
-//Initialize objects
-UART uart;
-UsSensor usSensor(US_ECHO, US_TRIG, &uart);
-IrSensor irSensor(IR_IN, &uart);
-
-void set_brightness(int brightness){
-  OCR2A = brightness;
+void I2C_init(uint32_t i2cBaudRate) {
+  TWSR = 0b00000000; // Set prescaler to 1
+  TWBR = ((F_CPU / i2cBaudRate) - 16) / 2; // Set SCL frequency
+  TWCR |= (1 << TWEN); // Enable I2C
 }
 
-int main(void)
-{
-  //true for US, false for IR
-  const bool MODE = false;
+bool detectMPU(){
+  uint8_t START = 0x08; //success code for i2c start
+  uint8_t MT_SLA_ACK = 0x18; //success code for i2c connection
 
-  /* --===-- Setup LED --===-- */
-  //sets the LED pin as an output
-  DDRB |= (1 << LED_PIN);
-  PORTB |= (1 << LED_PIN);    
-  
-  /* --===-- Setup Timers --===-- */
-  //this is used in ADC aswell as the US
-  //using 8 bit timer with fast PWM, we can use it for US without worrying about
-    //an overflow because the max distance that can be read from the timer is approx 550cm
-    //and our sensor can only go to 400cm
-  TCCR2A = (1 << COM2A1) | (1 << COM2B1) | (1 << WGM21) | (1 << WGM20); 
-  TCCR2B = (1 << CS22); //prescaler at 64, 128 is "slowmode" MIGHT BE ABLE TO REMOVE IF IR AND US BOTH STILL WORK
+  //detect if MPU is set up
+  //start condition
+  TWCR = (1 << TWINT)|(1 << TWSTA)|(1 << TWEN);
+  // busy wait for interrupt back from MPU (its done)
+  while (!(TWCR & (1 << TWINT)));
+  // Check if the start condition was successfully transmitted
+  if ((TWSR & 0xF8) != START) return false;
+  //load slave address into register, start transmission of address
+  TWDR = (MPU6050_ADDRESS << 1) | 0; //shift address and append write bit (0)
+  TWCR = (1 << TWINT)|(1 << TWEN);
+  //busy wait for interrupt, meaning address is transmitted and we receive data
+  while (!(TWCR & (1<<TWINT)));
 
-  //we use uint16_t because uint8_t wont fit the entire range of sensors.
-  uint16_t distance = 0;
+  //check for success of i2c connection
+  if ((TWSR & 0xF8) != MT_SLA_ACK) return false;
+  //stop condition
+  TWCR = (1 << TWSTO) | (1 << TWEN) | (1 << TWINT);
+  return true;
+}
+
+int main(void) {
+  UART uart;
+  UsSensor usSensor(US_ECHO, US_TRIG, &uart);
+  IrSensor irSensor(IR_IN, &uart);
+  LED largeLED(LED_PIN);
+  setUp8BitTimer();
+
+  //MPU set up
+  I2C_init(400000);
+  bool i2cConnection = detectMPU();
+
+  char buffer[48];
+  sprintf(buffer, "MPU Connection status: %s", i2cConnection ? "Success" : "Failed");
+
+  uart.println(buffer);
 
   while(true){
-    distance = (MODE) ? usSensor.getDistance() : irSensor.getDistance();
-
-    if(distance < 15){
-      //set led brightness to 100
-      set_brightness(255);
-      //turn on yellow led
-      PORTB |= (1 << Y_LED_PIN);
-    }else if(distance >= 15 && distance < 40){
-      //set led brightness to a linear percent
-      set_brightness(map(distance, 15, 45, 255, 0));
-      PORTB &= ~(1 << Y_LED_PIN);
-    }else if(distance >= 40){
-      set_brightness(0);
-      PORTB |= (1 << Y_LED_PIN);
-    }
-
-    char buffer[32];
-    sprintf(buffer, "Distance: %u cm", distance);
-    uart.println(buffer);
-
-    _delay_ms(250);
+    
   }
 }
