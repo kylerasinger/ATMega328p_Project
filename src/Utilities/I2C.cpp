@@ -34,27 +34,6 @@ bool I2CWrite(uint8_t data) {
   return true;
 }
 
-uint8_t I2CReadFromReg(uint8_t deviceAddr, uint8_t regAddr){
-  uint8_t data = 0x02;
-  I2CStart();
-  
-  I2CWrite(deviceAddr<<1); //write mode
-  I2CWrite(regAddr);
-
-  //repeated start because we want to read from the register
-  I2CStart();
-  I2CWrite(deviceAddr << 1 | 0x01); //read mode
-
-
-  TWCR = (1 << TWINT) | (1 << TWEN);
-  while (!(TWCR & (1 << TWINT))); // Wait for transmission to complete
-
-  data = TWDR;
-
-  I2CStop();
-  return data;
-}
-
 uint8_t I2CReadFromReg(uint8_t deviceAddr, uint8_t regAddr, LED* led) {
   //if debug light is on, this will return the status of the TWSR register
   uint8_t data = 0x02;
@@ -123,7 +102,7 @@ uint8_t I2CReadFromReg(uint8_t deviceAddr, uint8_t regAddr, LED* led) {
   return data;
 }
 
-bool detectMPU(LED* led){
+bool detectMPU(LED* led){ //THIS IS PURELY FOR DEBUGGING
   uint8_t START = 0x08; //success code for i2c start
   uint8_t MT_SLA_ACK = 0x18; //success code for i2c connection
   uint8_t status;
