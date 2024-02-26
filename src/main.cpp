@@ -9,11 +9,13 @@
 
 //personally made classes and helper functions
 #include "Communication/UART.h"
+#include "Communication/LED.h"
 #include "Sensors/UsSensor.h"
 #include "Sensors/IrSensor.h"
+#include "Sensors/MPU6050.h"
 #include "Utilities/Utilities.h"
-#include "Communication/LED.h"
 #include "Utilities/I2C.h"
+#include <stdlib.h>
 
 
 /* ---===       PIN DECLARATION      ===--- */
@@ -68,76 +70,65 @@ bool ReadSensor(LED* led, UART* uart) {
   int16_t GyY = (int16_t)(gyro[2] << 8 | gyro[3]);
   int16_t GyZ = (int16_t)(gyro[4] << 8 | gyro[5]);
 
-  char bufferAcX[12];
-  sprintf(bufferAcX, "AcX: %d", AcX);
-  uart->println(bufferAcX);
+  float gAcX = (float)AcX / 16384.0f;
+  float gAcY = (float)AcY / 16384.0f;
+  float gAcZ = (float)AcZ / 16384.0f;
 
-  char bufferAcY[12];
-  sprintf(bufferAcY, "AcY: %d", AcY);
-  uart->println(bufferAcY);
+  int intPart;
+  int fracPart;
 
-  char bufferAcZ[12];
-  sprintf(bufferAcZ, "AcZ: %d", AcZ);
-  uart->println(bufferAcZ);
+  //print
+  if(true){
+    char bufferAcX[12];
+    intPart = (int)gAcX; // Get the integer part
+    fracPart = abs((int)((gAcX - intPart) * 100)); // Get the fractional part as an integer
+    snprintf(bufferAcX, sizeof(bufferAcX), "AcX: %d.%02d", intPart, fracPart);
+    uart->println(bufferAcX);
 
-  char bufferGyX[12];
-  sprintf(bufferGyX, "GyX: %d", GyX);
-  uart->println(bufferGyX);
+    char bufferAcY[12];
+    intPart = (int)gAcY; // Get the integer part
+    fracPart = abs((int)((gAcY - intPart) * 100)); // Get the fractional part as an integer
+    snprintf(bufferAcY, sizeof(bufferAcY), "AcY: %d.%02d", intPart, fracPart);
+    uart->println(bufferAcY);
 
-  char bufferGyY[12];
-  sprintf(bufferGyY, "GyY: %d", GyY);
-  uart->println(bufferGyY);
+    char bufferAcZ[12];
+    intPart = (int)gAcZ; // Get the integer part
+    fracPart = abs((int)((gAcZ - intPart) * 100)); // Get the fractional part as an integer
+    snprintf(bufferAcZ, sizeof(bufferAcZ), "AcZ: %d.%02d", intPart, fracPart);
+    uart->println(bufferAcZ);
 
-  char bufferGyZ[12];
-  sprintf(bufferGyZ, "GyZ: %d", GyZ);
-  uart->println(bufferGyZ);
+    char bufferGyX[12];
+    sprintf(bufferGyX, "GyX: %d", GyX);
+    uart->println(bufferGyX);
 
+    char bufferGyY[12];
+    sprintf(bufferGyY, "GyY: %d", GyY);
+    uart->println(bufferGyY);
+
+    char bufferGyZ[12];
+    sprintf(bufferGyZ, "GyZ: %d", GyZ);
+    uart->println(bufferGyZ);
+  }
 
   return true;
 }
 
 
 int main(void) {
+  setUp8BitTimer();
+
   UART uart;
   UsSensor usSensor(US_ECHO, US_TRIG, &uart);
   IrSensor irSensor(IR_IN, &uart);
   LED largeLED(LED_PIN);
-  setUp8BitTimer();
+  MPU6050 mpu(MPU6050_ADDRESS, 0b00000000, 0b00000000, &largeLED);
+  // mpu.calibrateGyro(100);
 
   largeLED.setBrightness(0);
 
-  //MPU set up
-  {
-
-    I2CInit(400000);
-    //reset device to known state
-    I2CWriteToReg(MPU6050_ADDRESS, 0x6B, 0b10000000, &largeLED);
-    _delay_ms(100);
-
-    //clear the sleep bit of the MPU 
-    I2CWriteToReg(MPU6050_ADDRESS, 0x6B, 0x00, &largeLED);
-
-
-    /* range of gyroscope, set in register 27 (0x1B)
-    * 0bxxx00xxx for 250  deg/s
-    * 0bxxx01xxx for 500  deg/s
-    * 0bxxx10xxx for 1000 deg/s
-    * 0bxxx11xxx for 2000 deg/s                   */
-    I2CWriteToReg(MPU6050_ADDRESS, 0x1B, 0b00000000, &largeLED);
-
-    /* full scale range of accelerometer, set in register 28 (0x1C)
-    * 0bxxx00xxx for +/- 2  deg/s
-    * 0bxxx01xxx for +/- 4  deg/s
-    * 0bxxx10xxx for +/- 8  deg/s
-    * 0bxxx11xxx for +/- 16 deg/s                                */
-    I2CWriteToReg(MPU6050_ADDRESS, 0x1C, 0b00000000, &largeLED);
-
-    //set the PLL to the X axis gyroscope
-    I2CWriteToReg(MPU6050_ADDRESS, 0x6B, 0b00000001, &largeLED);
-  }
 
   while(true){
     _delay_ms(2000);
-    ReadSensor(&largeLED, &uart);
+    mpu.readSensor(&largeLED, &uart);
   }
 }

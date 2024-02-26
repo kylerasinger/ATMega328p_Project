@@ -6,7 +6,7 @@
 #include <util/twi.h>
 #include <Communication/LED.h>
 
-void I2CInit(uint32_t i2cBaudRate);
+void I2CInit(long i2cBaudRate);
 void I2CStart();
 void I2CStop();
 bool I2CWrite(uint8_t data);

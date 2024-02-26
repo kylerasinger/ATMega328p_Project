@@ -1,6 +1,6 @@
 #include "I2C.h"
 
-void I2CInit(uint32_t i2cBaudRate) {
+void I2CInit(long i2cBaudRate) {
   TWSR = 0b00000000; // Set prescaler to 1
   TWBR = ((F_CPU / i2cBaudRate) - 16) / 2; // Set SCL frequency
   TWCR |= (1 << TWEN); // Enable I2C
