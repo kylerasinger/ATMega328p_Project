@@ -14,8 +14,6 @@ private:
     int irInPin;
     UART* uart;
     
-
-
 };
 
 #endif

@@ -22,6 +22,9 @@ private:
     float gyroZ_degPerSec = 0;
 
     //these are currently done at home, should be done in the room where we test.
+    float accelBiasX = 0;
+    float accelBiasY = 0;
+    float accelBiasZ = 0;
     float gyroBiasX = -1.65;
     float gyroBiasY = 0.20;
     float gyroBiasZ = -1.35;
