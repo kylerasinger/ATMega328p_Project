@@ -16,6 +16,8 @@ Servo::Servo(uint8_t servoPin){
 
   //set TOP value for a 20ms period
   ICR1 = 39999;
+
+  setServoAngle(90);
 }
 
 void Servo::setServoAngle(uint8_t angle){

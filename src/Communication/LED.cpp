@@ -5,6 +5,7 @@ LED::LED(int ledPin){
     DDRB |= (1 << ledPin);
     PORTB |= (1 << ledPin);    
     OCR2A = 0;
+    setBrightness(0);
 }
 
 void LED::setBrightness(int brightness){ //0 to 255

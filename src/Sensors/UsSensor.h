@@ -5,6 +5,10 @@
 #include "../Communication/UART.h"
 #include <stdint.h> // For uint8_t, uint16_t types
 
+/*
+    In need of a recalibration
+*/
+
 class UsSensor : public Sensor {
 public:
     UsSensor(int echoPin, int trigPin, UART* uart); // Constructor with pin assignments

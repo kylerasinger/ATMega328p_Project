@@ -73,7 +73,7 @@ MPU6050::MPU6050(uint8_t mpuAddress, uint8_t gyro, uint8_t accel, LED* led){
     I2CWriteToReg(mpuAddress, 0x6B, 0b00000001, led);
 }
 
-bool MPU6050::readSensor(LED* led, UART* uart) {
+bool MPU6050::readSensor(LED* led) {
   //Possible problem, the accelZ_g value goes negative. pretty sure this is normal, the X and Y dont.
 
   uint8_t accel[6];
@@ -107,45 +107,45 @@ bool MPU6050::readSensor(LED* led, UART* uart) {
   gyroY_degPerSec = ((float)GyY / gyroSens) - gyroBiasY;
   gyroZ_degPerSec = ((float)GyZ / gyroSens) - gyroBiasZ;
 
+  return true;
+}
+
+void MPU6050::printSensorReadings(LED* led, UART* uart){
+
   int intPart;
   int fracPart;
 
-  //print
-  if(true){
-    char buffer[20] = "-----=========-----";
-    uart->println(buffer);
+  char buffer[20] = "-----=========-----";
+  uart->println(buffer);
 
-    intPart = (int)accelX_g; // Get the integer part
-    fracPart = abs((int)((accelX_g - intPart) * 100)); // Get the fractional part as an integer
-    snprintf(buffer, sizeof(buffer), "AcX: %d.%02d", intPart, fracPart);
-    uart->println(buffer);
+  intPart = (int)accelX_g; // Get the integer part
+  fracPart = abs((int)((accelX_g - intPart) * 100)); // Get the fractional part as an integer
+  snprintf(buffer, sizeof(buffer), "AcX: %d.%02d", intPart, fracPart);
+  uart->println(buffer);
 
-    intPart = (int)accelY_g; // Get the integer part
-    fracPart = abs((int)((accelY_g - intPart) * 100)); // Get the fractional part as an integer
-    snprintf(buffer, sizeof(buffer), "AcY: %d.%02d", intPart, fracPart);
-    uart->println(buffer);
+  intPart = (int)accelY_g; // Get the integer part
+  fracPart = abs((int)((accelY_g - intPart) * 100)); // Get the fractional part as an integer
+  snprintf(buffer, sizeof(buffer), "AcY: %d.%02d", intPart, fracPart);
+  uart->println(buffer);
 
-    intPart = (int)accelZ_g; // Get the integer part
-    fracPart = abs((int)((accelZ_g - intPart) * 100)); // Get the fractional part as an integer
-    snprintf(buffer, sizeof(buffer), "AcZ: %d.%02d", intPart, fracPart);
-    uart->println(buffer);
+  intPart = (int)accelZ_g; // Get the integer part
+  fracPart = abs((int)((accelZ_g - intPart) * 100)); // Get the fractional part as an integer
+  snprintf(buffer, sizeof(buffer), "AcZ: %d.%02d", intPart, fracPart);
+  uart->println(buffer);
 
-    //print gyroscope data
-    intPart = (int)gyroX_degPerSec; // Get the integer part
-    fracPart = abs((int)((gyroX_degPerSec - intPart) * 100)); // Get the fractional part as an integer
-    snprintf(buffer, sizeof(buffer), "GyX: %d.%02d", intPart, fracPart);
-    uart->println(buffer);
+  //print gyroscope data
+  intPart = (int)gyroX_degPerSec; // Get the integer part
+  fracPart = abs((int)((gyroX_degPerSec - intPart) * 100)); // Get the fractional part as an integer
+  snprintf(buffer, sizeof(buffer), "GyX: %d.%02d", intPart, fracPart);
+  uart->println(buffer);
 
-    intPart = (int)gyroY_degPerSec; // Get the integer part
-    fracPart = abs((int)((gyroY_degPerSec - intPart) * 100)); // Get the fractional part as an integer
-    snprintf(buffer, sizeof(buffer), "GyY: %d.%02d", intPart, fracPart);
-    uart->println(buffer);
+  intPart = (int)gyroY_degPerSec; // Get the integer part
+  fracPart = abs((int)((gyroY_degPerSec - intPart) * 100)); // Get the fractional part as an integer
+  snprintf(buffer, sizeof(buffer), "GyY: %d.%02d", intPart, fracPart);
+  uart->println(buffer);
 
-    intPart = (int)gyroZ_degPerSec; // Get the integer part
-    fracPart = abs((int)((gyroZ_degPerSec - intPart) * 100)); // Get the fractional part as an integer
-    snprintf(buffer, sizeof(buffer), "GyZ: %d.%02d", intPart, fracPart);
-    uart->println(buffer);
-  }
-
-  return true;
+  intPart = (int)gyroZ_degPerSec; // Get the integer part
+  fracPart = abs((int)((gyroZ_degPerSec - intPart) * 100)); // Get the fractional part as an integer
+  snprintf(buffer, sizeof(buffer), "GyZ: %d.%02d", intPart, fracPart);
+  uart->println(buffer);
 }
