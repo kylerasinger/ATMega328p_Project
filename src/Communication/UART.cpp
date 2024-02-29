@@ -30,3 +30,4 @@ void UART::println(const char *str) {
     putChar('\r');
     putChar('\n');
 }
+

@@ -27,6 +27,14 @@ public:
     bool readSensor(LED* led);
     void printSensorReadings(LED* led, UART* uart);
 
+    //getters setters
+    float getAccelX_g(){ return accelX_g; };
+    float getAccelY_g(){ return accelY_g; };
+    float getAccelZ_g(){ return accelZ_g; };
+    float getGyroX_degPerSec(){ return gyroX_degPerSec; };
+    float getGyroY_degPerSec(){ return gyroY_degPerSec; };
+    float getGyroZ_degPerSec(){ return gyroZ_degPerSec; };
+
 private: 
     float gyroSens = 0;
     uint16_t accelSens = 0;

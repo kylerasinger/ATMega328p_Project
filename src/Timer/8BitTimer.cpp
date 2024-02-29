@@ -1,4 +1,5 @@
 #include "8BitTimer.h"
+#include <math.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -29,15 +30,35 @@ void EightBitTimer::start(){
   TCCR2B |= (1 << CS20); // Start timer 2 with no prescaling
   time = 0;
   timerRunning = true;
-
 }
 
 long EightBitTimer::read(){
+  unsigned long correctedTime = static_cast<unsigned long>(time * 1.0); //apply a correction here if needed
+  EightBitTimer::correctedTime = correctedTime;
+  
+  EightBitTimer::timeInSeconds = correctedTime/16000000.0;
+
   timerRunning = false;
+
   return time;
 }
 
 void EightBitTimer::stop(){
   TCCR2B &= ~(1 << CS20); // Stop timer
   TIMSK2 &= ~(1 << TOIE2); // Disable Timer2 Overflow Interrupt
+}
+
+void EightBitTimer::printTime(UART *uart) {
+  // float timeInSeconds = correctedTime / 16000000.0;
+
+  unsigned long intPart = static_cast<unsigned long>(EightBitTimer::timeInSeconds);
+  unsigned long fracPart = static_cast<unsigned long>(fabs(EightBitTimer::timeInSeconds - intPart) * 100000);
+
+  char buffer[40];
+
+  sprintf(buffer, "Time (cycles): %lu", correctedTime);
+  uart->println(buffer);
+
+  sprintf(buffer, "Time (seconds): %lu.%05lu", intPart, fracPart);
+  uart->println(buffer);
 }

@@ -45,21 +45,46 @@
 /* ---===   END OF PIN DECLARATION   ===--- */
 
 
+
 int main(void) {
   EightBitTimer smallTimer;
   UART uart;
   UsSensor usSensor(US_ECHO, US_TRIG, &uart);
   IrSensor irSensor(IR_IN, &uart);
   LED largeLED(LED_PIN);
-  MPU6050 mpu(MPU6050_ADDRESS, 0b00000000, 0b00000000, &largeLED);
+  MPU6050 mpu(MPU6050_ADDRESS, 0b00011000, 0b00000000, &largeLED);
   Servo servo(SERVO_PIN);
 
   sei(); //enable interrupts
 
+  float yaw = 90.0;
+  float yawChange;
+
   while(true){
-    _delay_ms(500);
+    smallTimer.start();
+
     mpu.readSensor(&largeLED);
-    mpu.printSensorReadings(&largeLED, &uart);
+
+    unsigned long intPart = static_cast<unsigned long>(yaw);
+    unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
+    char buffer[25];
+    sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
+    uart.println(buffer);
+
+    if((int)yaw > 5 && (int)yaw < 175){
+      servo.setServoAngle((int)yaw);
+      turnOffYellowLED();
+    }else{
+      turnOnYellowLED();
+    }
+    smallTimer.read();
+    smallTimer.stop();
+
+    yawChange = mpu.getGyroZ_degPerSec() * smallTimer.timeInSeconds;
+    yaw -= yawChange;
+
+   // mpu.printSensorReadings(&largeLED, &uart);
+
   }
 }
 
