@@ -1,16 +1,18 @@
-#include "8BitTimer.h"
+#include "TimerTwo.h"
 #include <math.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-volatile long EightBitTimer::time = 0;
+volatile long TimerTwo::time = 0;
+
+//THIS IS TIMER 2 and it is 8 bit
 
 ISR(TIMER2_OVF_vect) {
-  EightBitTimer::time += 255;
+  TimerTwo::time += 255;
   TCNT2 = 0;
 }
 
-EightBitTimer::EightBitTimer() {
+TimerTwo::TimerTwo() {
   /* --===-- Setup Timers --===-- */
   //this is used in ADC aswell as the US
   //using 8 bit timer with fast PWM, we can use it for US without worrying about
@@ -23,7 +25,7 @@ EightBitTimer::EightBitTimer() {
   TCCR2B = (1 << CS22); //prescaler at 64, 128 is "slowmode" MIGHT BE ABLE TO REMOVE IF IR AND US BOTH STILL WORK
 }
 
-void EightBitTimer::start(){
+void TimerTwo::start(){
   TCCR2B = 0; // Stop timer 2
   TCNT2 = 0;  // Reset timer 2
   TIMSK2 |= (1 << TOIE2); // Enable Timer2 Overflow Interrupt
@@ -32,27 +34,27 @@ void EightBitTimer::start(){
   timerRunning = true;
 }
 
-long EightBitTimer::read(){
+long TimerTwo::read(){
   unsigned long correctedTime = static_cast<unsigned long>(time * 1.0); //apply a correction here if needed
-  EightBitTimer::correctedTime = correctedTime;
+  TimerTwo::correctedTime = correctedTime;
   
-  EightBitTimer::timeInSeconds = correctedTime/16000000.0;
+  TimerTwo::timeInSeconds = correctedTime/16000000.0;
 
   timerRunning = false;
 
   return time;
 }
 
-void EightBitTimer::stop(){
+void TimerTwo::stop(){
   TCCR2B &= ~(1 << CS20); // Stop timer
   TIMSK2 &= ~(1 << TOIE2); // Disable Timer2 Overflow Interrupt
 }
 
-void EightBitTimer::printTime(UART *uart) {
+void TimerTwo::printTime(UART *uart) {
   // float timeInSeconds = correctedTime / 16000000.0;
 
-  unsigned long intPart = static_cast<unsigned long>(EightBitTimer::timeInSeconds);
-  unsigned long fracPart = static_cast<unsigned long>(fabs(EightBitTimer::timeInSeconds - intPart) * 100000);
+  unsigned long intPart = static_cast<unsigned long>(TimerTwo::timeInSeconds);
+  unsigned long fracPart = static_cast<unsigned long>(fabs(TimerTwo::timeInSeconds - intPart) * 100000);
 
   char buffer[40];
 
