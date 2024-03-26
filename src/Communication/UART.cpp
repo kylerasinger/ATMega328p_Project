@@ -7,7 +7,7 @@ UART::UART(){
     UCSR0B = (1 << RXEN0)|(1 << TXEN0);
     //Sets the frame format as 8 bits for serial comms
     UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
-    //we are using a baud rate of 9600 bps at 16mhz because it is standard
+    //we are using a baud rate of 9600 bps at 16mhz because it is standar
     UBRR0H = 0;
     UBRR0L = 103; 
 }
