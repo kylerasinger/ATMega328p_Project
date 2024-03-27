@@ -20,7 +20,7 @@ uint16_t UsSensor::getDistance() {
     int minDistCM = 2;
     int temp = 22.8;
 
-    float speedOfSoundCMperMicroSec = 0.03313 + (0.0000606 * temp);  //speed of sound depending on temperature
+    float speedOfSoundCMperMicroSec = 0.0343f;  //speed of sound depending on temperature
 
     //pulse the US sensors input, triggering the US's cycle
     PORTB &= ~(1 << trigPin);
@@ -32,11 +32,11 @@ uint16_t UsSensor::getDistance() {
     //calculate ultrasound pulse
     int pulseUS = getUsPulse();
 
-    char buffer2[32];
-    sprintf(buffer2, "PulseUS: %u us", pulseUS);
-    uart->println(buffer2);
+    // char buffer2[32];
+    // sprintf(buffer2, "PulseUS: %u us", pulseUS);
+    // uart->println(buffer2);
 
-    float calibrationFloat = 1.30400;
+    float calibrationFloat = 1.0f; //0.13761
     uint16_t distCM = ((pulseUS * calibrationFloat) * speedOfSoundCMperMicroSec)/2; //pulseUS is the pulse length in microseconds
     
     //out of range error catch
@@ -71,6 +71,6 @@ int UsSensor::getUsPulse(){
     //stop the timer
     TCCR2B &= ~(1 << CS20);
 
-    pulseDuration = pulseDuration/4;
+    pulseDuration = pulseDuration/1; //4
     return pulseDuration;
 }
