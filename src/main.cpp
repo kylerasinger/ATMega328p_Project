@@ -58,7 +58,7 @@
 
 
 int main(void) {
-  // TimerZero timerZero;
+  TimerZero timerZero;
   TimerTwo timerTwo;
   UART uart;
   UsSensor usSensor(US_ECHO, US_TRIG, &uart);
@@ -74,12 +74,12 @@ int main(void) {
 
   sei(); //enable interrupts
 
-  float yaw = 90.0;
-  float yawChange;
+  // float yaw = 90.0;
+  // float yawChange;
 
-  float velocityX = 0.0;
-  float distanceX = 1000.0;
-  float distanceXChange;
+  // float velocityX = 0.0;
+  // float distanceX = 1000.0;
+  // float distanceXChange;
 
   // timerZero.start();
 
@@ -90,41 +90,58 @@ int main(void) {
   
   */
 
-  // liftFan.setSpeed(255);
+  //liftFan.setSpeed(255);
+  //thrustFan.setSpeed(255);
 
   while(true){
     // timerTwo.start();
 
+    int USDistance = usSensor.getDistance();
+    
+    char buffer1[50];
+    sprintf(buffer1, "DistanceX (m): %d", USDistance);
+    uart.println(buffer1);
+
+
     // mpu.readSensor(&largeLED);
 
-    // //This is all printing for debugging
-    //   // unsigned long intPart = static_cast<unsigned long>(yaw);
-    //   // unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
-    //   char buffer[25];
-    //   // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
-    //   // uart.println(buffer);
+    // This is all printing for debugging
+      // unsigned long intPart = static_cast<unsigned long>(yaw);
+      // unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
+      // char buffer[25];
 
-    //   unsigned long intPart2 = static_cast<unsigned long>(distanceX);
-    //   unsigned long fracPart2 = static_cast<unsigned long>(fabs(distanceX - intPart2) * 100000);
-    //   sprintf(buffer, "DistanceX (m): %lu.%05lu", intPart2, fracPart2);
-    //   uart.println(buffer);
-    // // end of printing for debugging
+      // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
+      // uart.println(buffer);
 
-    // if((int)yaw > 5 && (int)yaw < 175){
+      // unsigned long intPart2 = static_cast<unsigned long>(distanceX);
+      // unsigned long fracPart2 = static_cast<unsigned long>(fabs(distanceX - intPart2) * 100000);
+      // sprintf(buffer, "DistanceX (m): %lu.%05lu", intPart2, fracPart2);
+      // uart.println(buffer);
+    // end of printing for debugging
+
+    // if((int)yaw > 5 && (int)yaw < 175)
+    // {
     //   servo.setServoAngle((int)yaw);
     //   turnOffYellowLED();
-    // }else{
+    // }
+    // else
+    // {
     //   turnOnYellowLED();
     // }
 
     // int intAccelX = (int)((mpu.getAccelX_g()) * 100);
     // int absIntAccelX = abs(intAccelX);
 
-    // if(absIntAccelX < 8 ){
+    // if(absIntAccelX < 8 )
+    // {
     //   largeLED.setBrightness(0);
-    // }else if(absIntAccelX > 108){
+    // }
+    // else if(absIntAccelX > 108)
+    // {
     //   largeLED.setBrightness(255);
-    // }else if(absIntAccelX > 8 && absIntAccelX < 108){
+    // }
+    // else if(absIntAccelX > 8 && absIntAccelX < 108)
+    // {
     //   int mappedBrightness = map(absIntAccelX, 8, 108, 0, 255);
     //   largeLED.setBrightness(mappedBrightness);
     // }
@@ -141,7 +158,8 @@ int main(void) {
     // distanceX += distanceXChange;
 
     // timerZero.read();
-    // if(timerZero.timeInSeconds > 1.0){
+    // if(timerZero.timeInSeconds > 1.0)
+    // {
     //   mpu.printSensorReadings(&largeLED, &uart);
     //   timerZero.stop();
     //   timerZero.start();
