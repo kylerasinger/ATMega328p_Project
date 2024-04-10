@@ -48,7 +48,6 @@
   Timer 2 is being used for IMU motion tracking, the US Sensor and the LED's brightness.
 /  ---===               ===--- */
 
-TimerZero timerZero;
 TimerTwo timerTwo;
 UART uart;
 Servo servo;
@@ -96,35 +95,45 @@ void turningPoint()
   double rightDistance = getUSdistance();
   _delay_ms(1000);
 
-
+  //Check front
   servo.write(90);
   _delay_ms(1000);
+  double frontDistance = getUSdistance();
+  _delay_ms(1000);
 
-  if(leftDistance < rightDistance)
+
+  // servo.write(90);
+  // _delay_ms(1000);
+
+  if(leftDistance < rightDistance && rightDistance > frontDistance)
   {
     servo.write(150); // we can modify this to go at an angle not strictly 180 degrees
-    _delay_ms(1000);
+    _delay_ms(500);
     //add loop here
     liftFan.setSpeed(255); // Lift the hovercraft
-    _delay_ms(1000);
-    thrustFan.setSpeed(100); // Make the turn
-    _delay_ms(3500); // Delay for the time to make the turn
+    _delay_ms(500);
+    thrustFan.setSpeed(190); // Make the turn
+    _delay_ms(3000); // Delay for the time to make the turn
+  }
+  else if(leftDistance > rightDistance && leftDistance > frontDistance)
+  {
+    servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
+    _delay_ms(500);
+    //add loop here
+    liftFan.setSpeed(255); // Lift the hovercraft
+    _delay_ms(500);
+    thrustFan.setSpeed(190); // Make the turn
+    _delay_ms(3000);
+
   }
   else
   {
-    servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
-    _delay_ms(1000);
-    //add loop here
-    liftFan.setSpeed(255); // Lift the hovercraft
-    _delay_ms(1000);
-    thrustFan.setSpeed(100); // Make the turn
-    _delay_ms(3500);
-
+    servo.write(90);
+    _delay_ms(500);
   }
 
-  _delay_ms(1000);
-  servo.write(90); // Recenter the servo
-
+  _delay_ms(500);
+  //servo.write(90); // Recenter the servo
 
 }
 
@@ -170,27 +179,21 @@ int main() {
       liftFan.setSpeed(255);
       
       //Activate thrust fan
-      thrustFan.setSpeed(100);
-      
-      // // Print the distance reading to the serial monitor
-      // Serial.print("US Distance: ");
-      // Serial.print(distance);
-      // Serial.println(" cm");
+      thrustFan.setSpeed(220);
 
-      ///
-      /// IMU
-      ///
+      // Start IMU timer      
       timerTwo.start();
       mpu.readSensor();
 
-      //This is all printing for debugging
-      unsigned long intPart = static_cast<unsigned long>(yaw);
-      unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
+      // remove this garbage if it still runs
+      // //This is all printing for debugging
+      // unsigned long intPart = static_cast<unsigned long>(yaw);
+      // unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
 
-      // char buffer[25];
-      // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
-      // uart.println(buffer);
-      //end of printing for debugging
+      // // char buffer[25];
+      // // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
+      // // uart.println(buffer);
+      // //end of printing for debugging
 
       if((int)yaw > 5 && (int)yaw < 200)
       {
@@ -203,19 +206,9 @@ int main() {
       timerTwo.read();
       timerTwo.stop();
 
+      //important, do not remove
       yawChange = mpu.getGyroZ_degPerSec() * timerTwo.timeInSeconds;
-      yaw -= yawChange*1.3;
-
-      timerZero.read();
-      if(timerZero.timeInSeconds > 1.0)
-      {
-        timerZero.stop();
-        timerZero.start();
-      }
-      ///
-      /// End IMU
-      ///
-
+      yaw -= yawChange*1.3; //correction factor, can change the scale for precision.
     } // else statment i.e. normal state of HoverCraft
   } // void loop
   return 0;
