@@ -102,7 +102,7 @@ void turningPoint()
 
   if(leftDistance < rightDistance)
   {
-    servo.write(30); // we can modify this to go at an angle not strictly 180 degrees
+    servo.write(150); // we can modify this to go at an angle not strictly 180 degrees
     _delay_ms(1000);
     //add loop here
     liftFan.setSpeed(255); // Lift the hovercraft
@@ -112,7 +112,7 @@ void turningPoint()
   }
   else
   {
-    servo.write(150); // we can modify this to go at an angle not strictly 0 degrees
+    servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
     _delay_ms(1000);
     //add loop here
     liftFan.setSpeed(255); // Lift the hovercraft
@@ -197,6 +197,7 @@ int main() {
         double adjYaw = (double) yaw;
         double standard180 = 180.0;
         servo.write(standard180 - adjYaw*1.1);
+        _delay_ms(50);
       }
 
       timerTwo.read();
@@ -208,7 +209,6 @@ int main() {
       timerZero.read();
       if(timerZero.timeInSeconds > 1.0)
       {
-        mpu.printSensorReadings(&uart);
         timerZero.stop();
         timerZero.start();
       }
