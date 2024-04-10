@@ -48,12 +48,12 @@
   Timer 2 is being used for IMU motion tracking, the US Sensor and the LED's brightness.
 /  ---===               ===--- */
 
-  TimerZero timerZero;
-  TimerTwo timerTwo;
-  UART uart;
-  Servo servo;
-  Fan liftFan(L_FAN_PIN);
-  Fan thrustFan(T_FAN_PIN);
+TimerZero timerZero;
+TimerTwo timerTwo;
+UART uart;
+Servo servo;
+Fan liftFan(L_FAN_PIN);
+Fan thrustFan(T_FAN_PIN);
 
 ///
 /// Function to return distance read from US sensor
@@ -98,27 +98,33 @@ void turningPoint()
 
 
   servo.write(90);
+  _delay_ms(1000);
 
   if(leftDistance < rightDistance)
   {
-    servo.write(100); // we can modify this to go at an angle not strictly 180 degrees
+    servo.write(30); // we can modify this to go at an angle not strictly 180 degrees
+    _delay_ms(1000);
+    //add loop here
     liftFan.setSpeed(255); // Lift the hovercraft
-    delay(2000);
+    _delay_ms(1000);
     thrustFan.setSpeed(100); // Make the turn
-    delay(2000); // Delay for the time to make the turn
+    _delay_ms(3500); // Delay for the time to make the turn
   }
   else
   {
-    servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
+    servo.write(150); // we can modify this to go at an angle not strictly 0 degrees
+    _delay_ms(1000);
+    //add loop here
     liftFan.setSpeed(255); // Lift the hovercraft
+    _delay_ms(1000);
     thrustFan.setSpeed(100); // Make the turn
-
-    servo.write(90); // Recenter the servo
+    _delay_ms(3500);
 
   }
 
+  _delay_ms(1000);
   servo.write(90); // Recenter the servo
-  delay(15);
+
 
 }
 
@@ -155,7 +161,7 @@ int main() {
     if(distance < 50)
     {
 
-      turningPoint();
+      turningPoint(); // make the turn
 
     }
     else // Normal state of hoverCraft i.e. not at an intersection
@@ -188,7 +194,9 @@ int main() {
 
       if((int)yaw > 5 && (int)yaw < 200)
       {
-        servo.write(180 - (int) yaw);
+        double adjYaw = (double) yaw;
+        double standard180 = 180.0;
+        servo.write(standard180 - adjYaw*1.1);
       }
 
       timerTwo.read();
