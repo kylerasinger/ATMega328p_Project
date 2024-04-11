@@ -54,6 +54,8 @@ Servo servo;
 Fan liftFan(L_FAN_PIN);
 Fan thrustFan(T_FAN_PIN);
 
+//Now we try with the DMP Library
+
 ///
 /// Function to return distance read from US sensor
 ///
