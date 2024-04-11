@@ -83,42 +83,59 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   thrustFan.setSpeed(0);
   liftFan.setSpeed(0);
 
+  double frontDistance = getUSdistance();
+  _delay_ms(100);
+
   //Check left
   servo.write(0);
-  _delay_ms(1000);
+  _delay_ms(500);
   double leftDistance = getUSdistance();
-  _delay_ms(1000);
-
-  if(leftDistance > 50.0)
-  {
-    servo.write(30); // we can modify this to go at an angle not strictly 180 degrees
-    _delay_ms(500);
-    //add loop here
-    liftFan.setSpeed(255); // Lift the hovercraft
-    _delay_ms(500);
-    thrustFan.setSpeed(190); // Make the turn
-
-    for(int i = 0; i< 300; i++){ //equivalent to _delay_ms(3000);
-      timerTwo.start();
-      iMpu->readSensor();
-      _delay_ms(10);
-      timerTwo.read();
-      timerTwo.stop();
-
-      double turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
-      iYaw -= turningYawChange*1.3;
-    }
-  }
+  _delay_ms(500);
 
   //Check right
   servo.write(180);
-  _delay_ms(1000);
+  _delay_ms(500);
   double rightDistance = getUSdistance();
-  _delay_ms(1000);
+  _delay_ms(500);
 
-  if(rightDistance > 50)
+  if(leftDistance < rightDistance && rightDistance > frontDistance)  //turn right 
   {
-    servo.write(150); // we can modify this to go at an angle not strictly 0 degrees
+    servo.write(150); // we can modify this to go at an angle not strictly 180 degrees
+    _delay_ms(500);
+    //add loop here
+    liftFan.setSpeed(255); // Lift the hovercraft
+    _delay_ms(500); //track yaw here
+    thrustFan.setSpeed(190); // Make the turn
+
+    //3 second delay for the turn while tracking the yaw
+    for(int i = 0; i< 300; i++){ //equivalent to _delay_ms(3000);
+      timerTwo.start();
+      iMpu->readSensor();
+      _delay_ms(10);
+      timerTwo.read();
+      timerTwo.stop();
+
+      double turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
+      iYaw -= turningYawChange*1.3;
+    }
+    
+    servo.write(90); //we want this to set it back on the opposite x axis direction
+    _delay_ms(500);
+    
+    //printing for debugging purposes
+      // unsigned long intPart = static_cast<unsigned long>(iYaw);
+      // unsigned long fracPart = static_cast<unsigned long>(fabs(iYaw - intPart) * 100000);
+
+      // char buffer[25];
+      // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
+      // uart.println(buffer);
+    //end of printing
+
+    return iYaw;
+  }
+  else if(leftDistance > rightDistance && leftDistance > frontDistance) //turn left
+  {
+    servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
     _delay_ms(500);
     //add loop here
     liftFan.setSpeed(255); // Lift the hovercraft
@@ -135,16 +152,31 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       double turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
       iYaw -= turningYawChange*1.3;
     }
+
+    servo.write(90); //sets servo to middle of opposite x axis direction
+    _delay_ms(500);
+
+    //printing for debugging purposes
+      // unsigned long intPart = static_cast<unsigned long>(iYaw);
+      // unsigned long fracPart = static_cast<unsigned long>(fabs(iYaw - intPart) * 100000);
+
+      // char buffer[25];
+      // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
+      // uart.println(buffer);
+    //end of printing
+
+    return iYaw;
   }
-  return iYaw;
-  //Check front
+  
+  // // Check front
   // servo.write(90);
-  // _delay_ms(1000);
+  // _delay_ms(500);
   // double frontDistance = getUSdistance();
-  // _delay_ms(1000);
+  // _delay_ms(500);
 
-  //servo.write(90); // Recenter the servo
+  servo.write(90); // Recenter the servo if neither side is open and go forward
 
+  return iYaw; 
 }
 
 ///
@@ -183,8 +215,7 @@ int main() {
     // Threshold distance for Checking
     if(distance < 50)
     {
-
-      yaw = turningPoint( &mpu ,yaw); // make the turn
+      yaw = turningPoint( &mpu , yaw ); // make the turn
       counter++;
     }
     else // Normal state of hoverCraft i.e. not at an intersection
@@ -200,22 +231,21 @@ int main() {
       timerTwo.start();
       mpu.readSensor();
 
-      // remove this garbage if it still runs
       // //This is all printing for debugging
-      // unsigned long intPart = static_cast<unsigned long>(yaw);
-      // unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
+        // unsigned long intPart = static_cast<unsigned long>(yaw);
+        // unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
 
-      // // char buffer[25];
-      // // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
-      // // uart.println(buffer);
-      // //end of printing for debugging
+        // char buffer[25];
+        // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
+        // uart.println(buffer);
+      //end of printing for debugging
 
-      if((int)yaw > 5 && (int)yaw < 200)
+      if((int)yaw > 0 && (int)yaw < 180)
       {
         double adjYaw = (double) yaw;
         double standard180 = 180.0;
-        servo.write(standard180 - adjYaw*1.1);
-        _delay_ms(50);
+        servo.write(standard180 - adjYaw*1.0);
+        _delay_ms(100);
       }
 
       timerTwo.read();
