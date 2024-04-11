@@ -105,7 +105,7 @@ void turningPoint()
   // servo.write(90);
   // _delay_ms(1000);
 
-  if(leftDistance < rightDistance && rightDistance > frontDistance)
+  if(leftDistance < rightDistance && rightDistance > frontDistance) //turn right
   {
     servo.write(150); // we can modify this to go at an angle not strictly 180 degrees
     _delay_ms(500);
@@ -115,7 +115,7 @@ void turningPoint()
     thrustFan.setSpeed(190); // Make the turn
     _delay_ms(3000); // Delay for the time to make the turn
   }
-  else if(leftDistance > rightDistance && leftDistance > frontDistance)
+  else if(leftDistance > rightDistance && leftDistance > frontDistance) //turn left
   {
     servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
     _delay_ms(500);
@@ -195,11 +195,15 @@ int main() {
       // // uart.println(buffer);
       // //end of printing for debugging
 
-      if((int)yaw > 5 && (int)yaw < 200)
+      double adjYaw = (double) yaw;
+      double standard180 = 180.0;
+      if((int)yaw > 5 && (int)yaw < 90) // {0 - 90}
       {
-        double adjYaw = (double) yaw;
-        double standard180 = 180.0;
-        servo.write(standard180 - adjYaw*1.1);
+        servo.write(standard180 - adjYaw*1.1); //check if this causes it to turn too much at start. i think it weights to adjust more for one side
+        _delay_ms(50);
+      }else if((int)yaw > 90 && (int)yaw < 200) // {90 - 180}
+      { 
+        servo.write(standard180 - adjYaw*1.1); //check if this causes it to turn too much at start. i think it weights to adjust more for one side
         _delay_ms(50);
       }
 
