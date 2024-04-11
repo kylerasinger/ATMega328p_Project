@@ -77,7 +77,7 @@ double getUSdistance()
 ///
 /// Helper function to make the turn of the hoverCraft
 ///
-void turningPoint()
+double turningPoint(MPU6050* iMpu, double iYaw)
 {
   // turn off fans
   thrustFan.setSpeed(0);
@@ -89,50 +89,60 @@ void turningPoint()
   double leftDistance = getUSdistance();
   _delay_ms(1000);
 
+  if(leftDistance > 50.0)
+  {
+    servo.write(30); // we can modify this to go at an angle not strictly 180 degrees
+    _delay_ms(500);
+    //add loop here
+    liftFan.setSpeed(255); // Lift the hovercraft
+    _delay_ms(500);
+    thrustFan.setSpeed(190); // Make the turn
+
+    for(int i = 0; i< 300; i++){ //equivalent to _delay_ms(3000);
+      timerTwo.start();
+      iMpu->readSensor();
+      _delay_ms(10);
+      timerTwo.read();
+      timerTwo.stop();
+
+      double turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
+      iYaw -= turningYawChange*1.3;
+    }
+  }
+
   //Check right
   servo.write(180);
   _delay_ms(1000);
   double rightDistance = getUSdistance();
   _delay_ms(1000);
 
+  if(rightDistance > 50)
+  {
+    servo.write(150); // we can modify this to go at an angle not strictly 0 degrees
+    _delay_ms(500);
+    //add loop here
+    liftFan.setSpeed(255); // Lift the hovercraft
+    _delay_ms(500);
+    thrustFan.setSpeed(190); // Make the turn
+
+    for(int i = 0; i< 300; i++){ //equivalent to _delay_ms(3000);
+      timerTwo.start();
+      iMpu->readSensor();
+      _delay_ms(10);
+      timerTwo.read();
+      timerTwo.stop();
+
+      double turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
+      iYaw -= turningYawChange*1.3;
+    }
+  }
+  return iYaw;
   //Check front
-  servo.write(90);
-  _delay_ms(1000);
-  double frontDistance = getUSdistance();
-  _delay_ms(1000);
-
-
   // servo.write(90);
   // _delay_ms(1000);
+  // double frontDistance = getUSdistance();
+  // _delay_ms(1000);
 
-  if(leftDistance < rightDistance && rightDistance > frontDistance)
-  {
-    servo.write(150); // we can modify this to go at an angle not strictly 180 degrees
-    _delay_ms(500);
-    //add loop here
-    liftFan.setSpeed(255); // Lift the hovercraft
-    _delay_ms(500);
-    thrustFan.setSpeed(190); // Make the turn
-    _delay_ms(3000); // Delay for the time to make the turn
-  }
-  else if(leftDistance > rightDistance && leftDistance > frontDistance)
-  {
-    servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
-    _delay_ms(500);
-    //add loop here
-    liftFan.setSpeed(255); // Lift the hovercraft
-    _delay_ms(500);
-    thrustFan.setSpeed(190); // Make the turn
-    _delay_ms(3000);
-
-  }
-  else
-  {
-    servo.write(90);
-    _delay_ms(500);
-  }
-
-  _delay_ms(500);
   //servo.write(90); // Recenter the servo
 
 }
@@ -154,6 +164,9 @@ int main() {
   // Servo initalization
   servo.attach(9);
   servo.write(90);
+  _delay_ms(1000);
+  servo.write(180);
+  _delay_ms(1000);
 
   sei();  //Activate interrupts
 
@@ -165,16 +178,18 @@ int main() {
   while (true) {
 
     double distance = getUSdistance();
+    int counter = 0;
 
     // Threshold distance for Checking
     if(distance < 50)
     {
 
-      turningPoint(); // make the turn
-
+      yaw = turningPoint( &mpu ,yaw); // make the turn
+      counter++;
     }
     else // Normal state of hoverCraft i.e. not at an intersection
     {
+      
       // Activate lift fan
       liftFan.setSpeed(255);
       
