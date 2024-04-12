@@ -88,15 +88,9 @@ double turningPoint(MPU6050* iMpu, double iYaw, int flag)
   liftFan.setSpeed(0);
   _delay_ms(300);
 
-  double targetD = 0.0;
-  if(flag == 0){ targetD = 180.0;} 
-  if(flag == 1){ targetD = 270.0;}
-  if(flag == 2){ targetD = 180.0;}
-  if(flag == 3){ targetD = 90.0;}
-
   //double fanServo = 90.0 - ((180 - iYaw) - targetD);
-  double fanServo = 270 - iYaw;
-  if(fanServo >= 180) {fanServo = 180;}
+  double fanServo = 270.0 - iYaw;
+  if(fanServo >= 180) {fanServo = 180.0;}
   double rightFanServo = fanServo + 90.0;
   double leftFanServo = fanServo - 90.0;
   
@@ -106,12 +100,16 @@ double turningPoint(MPU6050* iMpu, double iYaw, int flag)
     servo.write(leftFanServo);
     _delay_ms(3000);
   }
-  else
+  else if(flag == 2 || flag == 3)
   {
     //scan right
     servo.write(rightFanServo);
     _delay_ms(3000);
 
+  }
+  else
+  {
+    // searching hole
   }
 
   if (flag == 0 || flag == 1) //right turn
