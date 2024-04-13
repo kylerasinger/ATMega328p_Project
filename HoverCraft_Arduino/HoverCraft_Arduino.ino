@@ -103,22 +103,20 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   ///
   if(leftDistance < rightDistance) 
   {
-    double servoAngleAtTurns = 230 - wYaw;
+    double servoAngleAtTurns = 250 - wYaw;
     if(servoAngleAtTurns >= 180.0) {servoAngleAtTurns = 180.0;}
-    // servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
-    // _delay_ms(500);
 
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(150); // Make the turn
+      thrustFan.setSpeed(170); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
 
       //Serial.println(wYaw);
       _delay_ms(50);
-      servo.write(servoAngleAtTurns + turningYawChange*10);
+      servo.write(servoAngleAtTurns + turningYawChange*1.3);
       _delay_ms(50);
 
       timerTwo.read();
@@ -144,22 +142,22 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   ///
   else if(leftDistance > rightDistance)
   {
-    double servoAngleAtTurns = 360 - wYaw;
-    servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
-    _delay_ms(500);
+    double servoAngleAtTurns = 270 - wYaw;
+    if(servoAngleAtTurns < 0) {servoAngleAtTurns = 0;}
 
     // loop for turning
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(150); // Make the turn
+      thrustFan.setSpeed(170); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
 
 
-
+      _delay_ms(50);
       servo.write(servoAngleAtTurns + turningYawChange*1.3);
+      _delay_ms(50);
 
       timerTwo.read();
       timerTwo.stop();
@@ -181,7 +179,6 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     }
     return wYaw; 
   }
-
   return wYaw; 
 }
 
@@ -216,7 +213,7 @@ int main() {
     double distance = getUSdistance();
 
     // Threshold distance for Checking
-    if(distance < 55)
+    if(distance < 60)
     {
       yaw = turningPoint( &mpu , yaw ); // make the turn
     }
@@ -227,7 +224,7 @@ int main() {
       liftFan.setSpeed(255);
       
       //Activate thrust fan
-      thrustFan.setSpeed(220);
+      thrustFan.setSpeed(250);
 
       // Start IMU timer      
       timerTwo.start();
