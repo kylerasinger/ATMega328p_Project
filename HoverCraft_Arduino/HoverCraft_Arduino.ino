@@ -79,12 +79,12 @@ double getUSdistance()
 ///
 double turningPoint(MPU6050* iMpu, double iYaw)
 {
+  double wYaw = iYaw;
+  double turningYawChange = 0.0;
+
   // turn off fans
   thrustFan.setSpeed(0);
   liftFan.setSpeed(0);
-
-  double frontDistance = getUSdistance();
-  _delay_ms(100);
 
   //Check left
   servo.write(0);
@@ -98,83 +98,85 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   double rightDistance = getUSdistance();
   _delay_ms(500);
 
-  if(leftDistance < rightDistance && rightDistance > frontDistance)  //turn right 
+  if(leftDistance < rightDistance)  //turn right 
   {
-    servo.write(150); // we can modify this to go at an angle not strictly 180 degrees
+    double servoAngleAtTurns = 250 - wYaw;
+    if(servoAngleAtTurns >= 180.0) {servoAngleAtTurns = 180.0;}
+    servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
     _delay_ms(500);
-    //add loop here
-    liftFan.setSpeed(255); // Lift the hovercraft
-    _delay_ms(500); //track yaw here
-    thrustFan.setSpeed(190); // Make the turn
 
-    //3 second delay for the turn while tracking the yaw
-    for(int i = 0; i< 300; i++){ //equivalent to _delay_ms(3000);
+    while(true){ 
+
+      liftFan.setSpeed(255); // Lift the hovercraft
+      thrustFan.setSpeed(150); // Make the turn
+
       timerTwo.start();
       iMpu->readSensor();
-      _delay_ms(10);
+
+      //Serial.println(wYaw);
+      servo.write(servoAngleAtTurns + turningYawChange*1.15);
+
       timerTwo.read();
       timerTwo.stop();
 
-      double turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
-      iYaw -= turningYawChange*1.3;
+      turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
+      wYaw -= turningYawChange*1.3;
+
+      if(210 < wYaw && wYaw < 260)
+      {
+        // turn off fans
+        thrustFan.setSpeed(0);
+        liftFan.setSpeed(0);
+        break;
+      }
+      else
+      {
+        continue;
+      }
     }
-    
-    servo.write(90); //we want this to set it back on the opposite x axis direction
-    _delay_ms(500);
-    
-    //printing for debugging purposes
-      // unsigned long intPart = static_cast<unsigned long>(iYaw);
-      // unsigned long fracPart = static_cast<unsigned long>(fabs(iYaw - intPart) * 100000);
 
-      // char buffer[25];
-      // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
-      // uart.println(buffer);
-    //end of printing
-
-    return iYaw;
+    return wYaw;
   }
-  else if(leftDistance > rightDistance && leftDistance > frontDistance) //turn left
+
+  else if(leftDistance > rightDistance) //turn left
   {
-    servo.write(30); // we can modify this to go at an angle not strictly 0 degrees
+    double servoAngleAtTurns = 260 - iYaw;
+    servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
     _delay_ms(500);
-    //add loop here
+
     liftFan.setSpeed(255); // Lift the hovercraft
-    _delay_ms(500);
     thrustFan.setSpeed(190); // Make the turn
 
-    for(int i = 0; i< 300; i++){ //equivalent to _delay_ms(3000);
+
+    // loop for turning
+    while(true){ 
+
+      liftFan.setSpeed(255); // Lift the hovercraft
+      thrustFan.setSpeed(170); // Make the turn
+
       timerTwo.start();
       iMpu->readSensor();
-      _delay_ms(10);
+
+
+
+      servo.write(servoAngleAtTurns + turningYawChange*1.3);
+
       timerTwo.read();
       timerTwo.stop();
 
-      double turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
+      turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
       iYaw -= turningYawChange*1.3;
+
+      if(240 < iYaw < 260)
+      {
+        // turn off fans
+        thrustFan.setSpeed(0);
+        liftFan.setSpeed(0);
+        break;
+      }
     }
-
-    servo.write(90); //sets servo to middle of opposite x axis direction
-    _delay_ms(500);
-
-    //printing for debugging purposes
-      // unsigned long intPart = static_cast<unsigned long>(iYaw);
-      // unsigned long fracPart = static_cast<unsigned long>(fabs(iYaw - intPart) * 100000);
-
-      // char buffer[25];
-      // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
-      // uart.println(buffer);
-    //end of printing
-
-    return iYaw;
+    return iYaw; 
   }
-  
-  // // Check front
-  // servo.write(90);
-  // _delay_ms(500);
-  // double frontDistance = getUSdistance();
-  // _delay_ms(500);
-
-  servo.write(90); // Recenter the servo if neither side is open and go forward
 
   return iYaw; 
 }
@@ -196,9 +198,7 @@ int main() {
   // Servo initalization
   servo.attach(9);
   servo.write(90);
-  _delay_ms(1000);
-  servo.write(180);
-  _delay_ms(1000);
+  _delay_ms(50);
 
   sei();  //Activate interrupts
 
@@ -210,13 +210,11 @@ int main() {
   while (true) {
 
     double distance = getUSdistance();
-    int counter = 0;
 
     // Threshold distance for Checking
     if(distance < 50)
     {
       yaw = turningPoint( &mpu , yaw ); // make the turn
-      counter++;
     }
     else // Normal state of hoverCraft i.e. not at an intersection
     {
@@ -231,21 +229,19 @@ int main() {
       timerTwo.start();
       mpu.readSensor();
 
-      // //This is all printing for debugging
-        // unsigned long intPart = static_cast<unsigned long>(yaw);
-        // unsigned long fracPart = static_cast<unsigned long>(fabs(yaw - intPart) * 100000);
-
-        // char buffer[25];
-        // sprintf(buffer, "Yaw (degrees): %lu.%05lu", intPart, fracPart);
-        // uart.println(buffer);
-      //end of printing for debugging
-
       if((int)yaw > 0 && (int)yaw < 180)
       {
-        double adjYaw = (double) yaw;
+        double adjServoYaw = (double) yaw;
         double standard180 = 180.0;
-        servo.write(standard180 - adjYaw*1.0);
-        _delay_ms(100);
+        servo.write(standard180 - adjServoYaw*1.0);
+        _delay_ms(50);
+      }
+      else if((int)yaw > 180 && (int)yaw < 360)
+      {
+        double adjServoYaw = (double) yaw - 180;
+        double standard180 = 180.0;
+        servo.write(standard180 - adjServoYaw*1.0);
+        _delay_ms(50);
       }
 
       timerTwo.read();
@@ -253,7 +249,17 @@ int main() {
 
       //important, do not remove
       yawChange = mpu.getGyroZ_degPerSec() * timerTwo.timeInSeconds;
+
       yaw -= yawChange*1.3; //correction factor, can change the scale for precision.
+
+        if(yaw > 360 )
+      {
+        yaw -= 360;
+      }
+      else if(yaw < 0)
+      {
+        yaw += 360;
+      }
     } // else statment i.e. normal state of HoverCraft
   } // void loop
   return 0;
