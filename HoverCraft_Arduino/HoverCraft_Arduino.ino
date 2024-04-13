@@ -82,18 +82,25 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   double wYaw = iYaw;
   double turningYawChange = 0.0;
 
+  double wYawLeft = iYaw - 90;
+  if(wYawLeft <= 0){wYawLeft = 0;}
+
+  double wYawRight = iYaw + 90;
+  if(wYawRight >= 180){wYawRight = 180;}
+
   // turn off fans
   thrustFan.setSpeed(0);
   liftFan.setSpeed(0);
+  _delay_ms(100);
 
   //Check left
-  servo.write(0);
+  servo.write(wYawLeft);
   _delay_ms(500);
   double leftDistance = getUSdistance();
   _delay_ms(500);
 
   //Check right
-  servo.write(180);
+  servo.write(wYawRight);
   _delay_ms(500);
   double rightDistance = getUSdistance();
   _delay_ms(500);
@@ -109,7 +116,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(170); // Make the turn
+      thrustFan.setSpeed(190); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -125,7 +132,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
       wYaw -= turningYawChange*1.3;
 
-      if(210 < wYaw && wYaw < 260)
+      if(230 < wYaw && wYaw < 260)
       {
         // turn off fans
         thrustFan.setSpeed(0);
@@ -149,7 +156,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(170); // Make the turn
+      thrustFan.setSpeed(190); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -213,8 +220,9 @@ int main() {
     double distance = getUSdistance();
 
     // Threshold distance for Checking
-    if(distance < 60)
+    if(distance < 53)
     {
+
       yaw = turningPoint( &mpu , yaw ); // make the turn
     }
     else // Normal state of hoverCraft i.e. not at an intersection
@@ -224,7 +232,7 @@ int main() {
       liftFan.setSpeed(255);
       
       //Activate thrust fan
-      thrustFan.setSpeed(250);
+      thrustFan.setSpeed(255);
 
       // Start IMU timer      
       timerTwo.start();
@@ -234,14 +242,14 @@ int main() {
       {
         double adjServoYaw = (double) yaw;
         double standard180 = 180.0;
-        servo.write(standard180 - adjServoYaw*1.0);
+        servo.write(standard180 - adjServoYaw);
         _delay_ms(50);
       }
       else if((int)yaw > 180 && (int)yaw < 360)
       {
-        double adjServoYaw = (double) yaw - 180;
-        double standard180 = 180.0;
-        servo.write(standard180 - adjServoYaw*1.0);
+        double adjServoYaw = (double) yaw - 290;
+        double standard90 = 90.0;
+        servo.write(standard90 - adjServoYaw);
         _delay_ms(50);
       }
 
