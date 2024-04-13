@@ -116,7 +116,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(190); // Make the turn
+      thrustFan.setSpeed(180); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -156,7 +156,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(190); // Make the turn
+      thrustFan.setSpeed(180); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -218,11 +218,17 @@ int main() {
   while (true) {
 
     double distance = getUSdistance();
+    int counter = 0;
 
     // Threshold distance for Checking
-    if(distance < 53)
+    if(distance < 53 && counter == 0)
     {
 
+      yaw = turningPoint( &mpu , yaw ); // make the turn
+      counter++;
+    }
+    else if (distance < 40 && counter > 0)
+    {
       yaw = turningPoint( &mpu , yaw ); // make the turn
     }
     else // Normal state of hoverCraft i.e. not at an intersection
