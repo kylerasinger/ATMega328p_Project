@@ -103,7 +103,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   ///
   if(leftDistance < rightDistance) 
   {
-    double servoAngleAtTurns = 250 - wYaw;
+    double servoAngleAtTurns = 230 - wYaw;
     if(servoAngleAtTurns >= 180.0) {servoAngleAtTurns = 180.0;}
     // servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
     // _delay_ms(500);
@@ -117,8 +117,9 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       iMpu->readSensor();
 
       //Serial.println(wYaw);
-      servo.write(servoAngleAtTurns - turningYawChange*1.3);
-      _delay_ms(100);
+      _delay_ms(50);
+      servo.write(servoAngleAtTurns + turningYawChange*10);
+      _delay_ms(50);
 
       timerTwo.read();
       timerTwo.stop();
@@ -132,10 +133,6 @@ double turningPoint(MPU6050* iMpu, double iYaw)
         thrustFan.setSpeed(0);
         liftFan.setSpeed(0);
         break;
-      }
-      else
-      {
-        continue;
       }
     }
 
