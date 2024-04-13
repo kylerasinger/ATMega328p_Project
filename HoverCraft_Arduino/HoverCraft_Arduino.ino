@@ -98,12 +98,15 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   double rightDistance = getUSdistance();
   _delay_ms(500);
 
-  if(leftDistance < rightDistance)  //turn right 
+  ///
+  /// Right Turn
+  ///
+  if(leftDistance < rightDistance) 
   {
     double servoAngleAtTurns = 250 - wYaw;
     if(servoAngleAtTurns >= 180.0) {servoAngleAtTurns = 180.0;}
-    servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
-    _delay_ms(500);
+    // servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
+    // _delay_ms(500);
 
     while(true){ 
 
@@ -114,7 +117,8 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       iMpu->readSensor();
 
       //Serial.println(wYaw);
-      servo.write(servoAngleAtTurns + turningYawChange*1.15);
+      servo.write(servoAngleAtTurns - turningYawChange*1.3);
+      _delay_ms(100);
 
       timerTwo.read();
       timerTwo.stop();
@@ -138,21 +142,20 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     return wYaw;
   }
 
-  else if(leftDistance > rightDistance) //turn left
+  ///
+  /// Left Turn
+  ///
+  else if(leftDistance > rightDistance)
   {
-    double servoAngleAtTurns = 260 - iYaw;
+    double servoAngleAtTurns = 360 - wYaw;
     servo.write(servoAngleAtTurns); // we can modify this to go at an angle not strictly 180 degrees
     _delay_ms(500);
-
-    liftFan.setSpeed(255); // Lift the hovercraft
-    thrustFan.setSpeed(190); // Make the turn
-
 
     // loop for turning
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(170); // Make the turn
+      thrustFan.setSpeed(150); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -165,20 +168,24 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       timerTwo.stop();
 
       turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
-      iYaw -= turningYawChange*1.3;
+      wYaw -= turningYawChange*1.3;
 
-      if(240 < iYaw < 260)
+      if(80 < wYaw < 110)
       {
         // turn off fans
         thrustFan.setSpeed(0);
         liftFan.setSpeed(0);
         break;
       }
+      else
+      {
+        continue;
+      }
     }
-    return iYaw; 
+    return wYaw; 
   }
 
-  return iYaw; 
+  return wYaw; 
 }
 
 ///
@@ -212,7 +219,7 @@ int main() {
     double distance = getUSdistance();
 
     // Threshold distance for Checking
-    if(distance < 50)
+    if(distance < 55)
     {
       yaw = turningPoint( &mpu , yaw ); // make the turn
     }
