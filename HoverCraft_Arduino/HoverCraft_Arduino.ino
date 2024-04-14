@@ -156,7 +156,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(160); // Make the turn
+      thrustFan.setSpeed(200); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -172,16 +172,12 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
       wYaw -= turningYawChange*1.3;
 
-      if(90 < wYaw < 110)
+      if(110 < wYaw && wYaw < 130)
       {
         // turn off fans
         thrustFan.setSpeed(0);
         liftFan.setSpeed(0);
         break;
-      }
-      else
-      {
-        continue;
       }
     }
     return wYaw; 
@@ -213,7 +209,7 @@ double searchingForDream(MPU6050* iMpu, double iYaw)
   double rightDistance = getUSdistance();
   _delay_ms(500);
 
-  if (rightDistance > 25)
+  if (rightDistance > 30)
   {
     double servoAngleAtTurns = 250 - wYaw;
     if(servoAngleAtTurns >= 180.0) {servoAngleAtTurns = 180.0;}
@@ -242,6 +238,7 @@ double searchingForDream(MPU6050* iMpu, double iYaw)
         // turn off fans
         thrustFan.setSpeed(0);
         liftFan.setSpeed(0);
+        _delay_ms(500);
         break;
       }
     }
@@ -252,9 +249,8 @@ double searchingForDream(MPU6050* iMpu, double iYaw)
     _delay_ms(500);
 
     liftFan.setSpeed(255); // Lift the hovercraft
-    thrustFan.setSpeed(150); // Make the turn
-
-    _delay_ms(4000);
+    thrustFan.setSpeed(100); // Make the turn
+    _delay_ms(1000);
   }
 
 }
@@ -291,20 +287,20 @@ int main() {
     int counter = 0;
 
     // Threshold distance for Checking
-    if(distance < 70 && counter == 0) // distance for right turn
+    if(distance < 80 && counter == 0) // distance for right turn
     {
 
       yaw = turningPoint( &mpu , yaw ); // make the turn
       counter++;
     }
-    else if (distance < 40 && counter == 1) // distance before left turn
+    else if (distance > 0 && distance < 5 && counter == 1) // distance before left turn
     {
       yaw = turningPoint( &mpu , yaw ); // make the turn
       counter++;
     }
     else if(counter > 1)
     {
-      yaw = searchingForDream(&mpu , yaw); //looking for the whole
+      yaw = searchingForDream( &mpu , yaw ); //looking for the whole
     }
     else // Normal state of hoverCraft i.e. not at an intersection
     {
@@ -313,7 +309,7 @@ int main() {
       liftFan.setSpeed(255);
       
       //Activate thrust fan
-      thrustFan.setSpeed(210);
+      thrustFan.setSpeed(240);
 
       // Start IMU timer      
       timerTwo.start();
