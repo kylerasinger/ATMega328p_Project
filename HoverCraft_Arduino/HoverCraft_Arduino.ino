@@ -116,7 +116,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(180); // Make the turn
+      thrustFan.setSpeed(160); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -149,14 +149,14 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   ///
   else if(leftDistance > rightDistance)
   {
-    double servoAngleAtTurns = 270 - wYaw;
+    double servoAngleAtTurns = 250 - wYaw;
     if(servoAngleAtTurns < 0) {servoAngleAtTurns = 0;}
 
     // loop for turning
     while(true){ 
 
       liftFan.setSpeed(255); // Lift the hovercraft
-      thrustFan.setSpeed(180); // Make the turn
+      thrustFan.setSpeed(160); // Make the turn
 
       timerTwo.start();
       iMpu->readSensor();
@@ -172,7 +172,7 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
       wYaw -= turningYawChange*1.3;
 
-      if(80 < wYaw < 110)
+      if(90 < wYaw < 110)
       {
         // turn off fans
         thrustFan.setSpeed(0);
@@ -254,7 +254,7 @@ double searchingForDream(MPU6050* iMpu, double iYaw)
     liftFan.setSpeed(255); // Lift the hovercraft
     thrustFan.setSpeed(150); // Make the turn
 
-    _delay_ms(2000);
+    _delay_ms(4000);
   }
 
 }
@@ -291,7 +291,7 @@ int main() {
     int counter = 0;
 
     // Threshold distance for Checking
-    if(distance < 53 && counter == 0) // / distance for right turn
+    if(distance < 70 && counter == 0) // distance for right turn
     {
 
       yaw = turningPoint( &mpu , yaw ); // make the turn
@@ -313,7 +313,7 @@ int main() {
       liftFan.setSpeed(255);
       
       //Activate thrust fan
-      thrustFan.setSpeed(255);
+      thrustFan.setSpeed(210);
 
       // Start IMU timer      
       timerTwo.start();
