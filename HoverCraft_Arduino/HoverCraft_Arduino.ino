@@ -110,10 +110,12 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   ///
   if(leftDistance < rightDistance) 
   {
-    double servoAngleAtTurns = 250 - wYaw;
-    if(servoAngleAtTurns >= 180.0) {servoAngleAtTurns = 180.0;}
 
     while(true){ 
+
+      double servoAngleAtTurns = 270 - wYaw;
+      if(servoAngleAtTurns >= 180.0) {servoAngleAtTurns = 180.0;}
+      else if(wYaw > 180 ) {servoAngleAtTurns = 360 - wYaw;}
 
       liftFan.setSpeed(255); // Lift the hovercraft
       thrustFan.setSpeed(160); // Make the turn
@@ -132,8 +134,9 @@ double turningPoint(MPU6050* iMpu, double iYaw)
       turningYawChange = iMpu->getGyroZ_degPerSec() * timerTwo.timeInSeconds;
       wYaw -= turningYawChange*1.3;
 
-      if(230 < wYaw && wYaw < 260)
+      if(260 < wYaw)
       {
+        _delay_ms(1000);
         // turn off fans
         thrustFan.setSpeed(0);
         liftFan.setSpeed(0);
@@ -149,11 +152,13 @@ double turningPoint(MPU6050* iMpu, double iYaw)
   ///
   else if(leftDistance > rightDistance)
   {
-    double servoAngleAtTurns = 250 - wYaw;
-    if(servoAngleAtTurns < 0) {servoAngleAtTurns = 0;}
+
 
     // loop for turning
     while(true){ 
+
+      double servoAngleAtTurns = 250 - wYaw;
+      if(servoAngleAtTurns < 0) {servoAngleAtTurns = 0;}
 
       liftFan.setSpeed(255); // Lift the hovercraft
       thrustFan.setSpeed(200); // Make the turn
